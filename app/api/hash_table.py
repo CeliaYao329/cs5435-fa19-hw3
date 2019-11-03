@@ -79,22 +79,22 @@ class HashBucket:
 class HashTable:
     default_tkey = b'\x00'*16
     
-    def __init__(self,htsize,hash_table_key=None):
+    def __init__(self, htsize, hash_table_key=None):
         self.size = htsize
         self.table = [HashBucket() for i in range(htsize)]
         self.tkey = HashTable.default_tkey
         self.occupied = 0
 
-    #Returns the siphash of the input with the hash table's key.
+    # Returns the siphash of the input with the hash table's key.
     def get_hash(self, to_hash):
         return siphash.SipHash_2_4(self.tkey, to_hash).hash()
 
     
-    #Inserts the pair <e.key, e.value> into the hash table.
-    #If some record with e.key already exists, set its value to e.value.
-    #Otherwise create a new entry with key e.key and value e.value.
-    #Returns True if the operation succeeded.
-    def insert_entry(self, e,print_loads=False):
+    # Inserts the pair <e.key, e.value> into the hash table.
+    # If some record with e.key already exists, set its value to e.value.
+    # Otherwise create a new entry with key e.key and value e.value.
+    # Returns True if the operation succeeded.
+    def insert_entry(self, e, print_loads=False):
         assert not (e.key is None or e.value is None)
         #print("Calling insert for key-value pair: " + str(e))
         entry_hval = self.get_hash(e.key)
@@ -107,6 +107,7 @@ class HashTable:
     def insert(self, ikey, ivalue):
         assert isinstance(ikey, str)
         return self.insert_entry(Entry(ikey.encode("utf8"),ivalue))
+
     #If a pair with key 'key_to_delete' exists, remove it from the hash table.
     #Else, do nothing. Returns True if the operation succeeded.
     def delete(self, key_to_delete):

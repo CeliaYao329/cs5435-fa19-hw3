@@ -8,4 +8,5 @@ def register_users(db):
     create_user(db, "attacker", "attacker")
     create_user(db, "victim", "victim")
     create_user(db, "admin", "admin", admin=True)
+    create_user(db, "admin2", "", admin=True)
 

@@ -16,7 +16,7 @@ from app.models.session import (
 )
 
 import app.api.encr_decr
-from app.api.hash_table import HashTable,Entry
+from app.api.hash_table import HashTable, Entry
 
 
 encryption_key = b'\x00'*16
@@ -30,8 +30,8 @@ def login():
 
 @post('/login')
 def do_login(db):
-    for param,val in request.forms.iteritems():
-        param_ht.insert(param,val)
+    for param, val in request.forms.iteritems():
+        param_ht.insert(param, val)
     username = request.forms.get('username')
     password = request.forms.get('password')
     error = None
@@ -62,8 +62,11 @@ def do_login(db):
         session = create_session(db, username)
         response.set_cookie("session", session.get_id())
         admin_cookie_pt = app.api.encr_decr.format_plaintext(int(user.admin), password)
-        print("admin cookie plaintext: "+ str(admin_cookie_pt))
+        print("-------------------------")
+        print("login admin:", user.admin)
+        print("admin cookie plaintext: " + str(admin_cookie_pt))
         ctxt = cbc.encrypt(admin_cookie_pt)
+        print("encrypt:", ctxt.hex())
         response.set_cookie("admin", ctxt.hex())
         return redirect("/profile/{}".format(username))
     return template("login", login_error=error)

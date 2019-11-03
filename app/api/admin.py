@@ -20,6 +20,7 @@ encryption_key = b'\x00'*16
 @post('/setcoins')
 @logged_in
 def set_coins(db, session):
+    print("in set_coins")
     admin = get_user(db, session.get_username())
     ctxt = request.get_cookie("admin")
     print("admin cookie hex: " + ctxt)
@@ -28,6 +29,7 @@ def set_coins(db, session):
     try:
         dpt = cbc.decrypt(ctxt_bytes)
     except ValueError as exc:
+        print("except 1")
         return template(
                 "profile",
                 user=admin,
@@ -35,7 +37,15 @@ def set_coins(db, session):
                 error="Unspecified error.",
                 admin=admin.admin,
                 )
-    if not dpt:#Decrypt returns False if there was a padding exceptionu
+    if not dpt: # Decrypt returns False if there was a padding exception
+        print("except 2")
+        print(len(template(
+                "profile",
+                user=admin,
+                session_user=admin,
+                error="Bad padding for admin cookie!",
+                admin=admin.admin,
+                )))
         return template(
                 "profile",
                 user=admin,
@@ -43,6 +53,7 @@ def set_coins(db, session):
                 error="Bad padding for admin cookie!",
                 admin=admin.admin,
                 )
+    print(type(dpt))
     is_admin_user = app.api.encr_decr.is_admin_cookie(dpt)
     print("Is admin user: " + str(is_admin_user))
     if not is_admin_user:

@@ -16,6 +16,7 @@ class Encryption(object):
     def __init__(self, in_key=None):
         self._backend = default_backend()
         self._block_size_bytes = int(ciphers.algorithms.AES.block_size/8)
+        print("Encryption block size: ", self._block_size_bytes)
         if in_key is None:
             self._key = os.urandom(self._block_size_bytes)
         else:
@@ -28,15 +29,20 @@ class Encryption(object):
         encryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
                                    ciphers.modes.CBC(iv),
                                    self._backend).encryptor()
+        # TODO test
         _ciphertext = iv + encryptor.update(padded_msg) + encryptor.finalize()
+        # _ciphertext = encryptor.update(padded_msg) + encryptor.finalize()
+        # self.iv = iv
         return _ciphertext
     
     def decrypt(self, ctx):
+        # TODO test
         iv, ctx = ctx[:self._block_size_bytes], ctx[self._block_size_bytes:]
+        # iv = self.iv
         unpadder = padding.PKCS7(ciphers.algorithms.AES.block_size).unpadder()
         decryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
                                    ciphers.modes.CBC(iv),
-                                   self._backend).decryptor()        
+                                   self._backend).decryptor()
         padded_msg = decryptor.update(ctx) + decryptor.finalize()
         try:
             msg = unpadder.update(padded_msg) + unpadder.finalize()
