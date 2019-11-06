@@ -27,7 +27,7 @@ class Encryption(object):
         padded_msg = padder.update(msg) + padder.finalize()
         iv = os.urandom(self._block_size_bytes)
         encryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
-                                   ciphers.modes.CBC(iv),
+                                   ciphers.modes.GCM(iv),
                                    self._backend).encryptor()
         # TODO test
         _ciphertext = iv + encryptor.update(padded_msg) + encryptor.finalize()
@@ -41,7 +41,7 @@ class Encryption(object):
         # iv = self.iv
         unpadder = padding.PKCS7(ciphers.algorithms.AES.block_size).unpadder()
         decryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
-                                   ciphers.modes.CBC(iv),
+                                   ciphers.modes.GCM(iv),
                                    self._backend).decryptor()
         padded_msg = decryptor.update(ctx) + decryptor.finalize()
         try:
