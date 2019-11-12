@@ -19,33 +19,31 @@ class Encryption(object):
         self._block_size_bytes = int(ciphers.algorithms.AES.block_size/8)
         self._aad = b"sy684"
         if in_key is None:
-            self._key = AESGCM.generate_key(bit_length=128)
+            self._key = os.urandom(self._block_size_bytes)
         else:
             self._key = in_key
-        self._aesgcm = AESGCM(self._key)
 
     def encrypt(self, msg):
         # padder = padding.PKCS7(ciphers.algorithms.AES.block_size).padder()
         # padded_msg = padder.update(msg) + padder.finalize()
         iv = os.urandom(self._block_size_bytes)
-        _ciphertext = iv + self._aesgcm.encrypt(iv, msg, self._aad)
-        # encryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
-        #                            ciphers.modes.GCM(iv),
-        #                            self._backend).encryptor()
-        # TODO test
-        # _ciphertext = iv + encryptor.update(msg) + encryptor.finalize()
+        encryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
+                                   ciphers.modes.GCM(iv),
+                                   self._backend).encryptor()
+        _ciphertext = iv + encryptor.update(msg) + encryptor.finalize()
+        tag = encryptor.tag
+        _ciphertext = tag + _ciphertext
         return _ciphertext
     
     def decrypt(self, ctx):
-        iv, ctx = ctx[:self._block_size_bytes], ctx[self._block_size_bytes:]
-        msg = self._aesgcm.decrypt(iv, ctx, self._aad)
+        tag, iv, ctx = ctx[:self._block_size_bytes],ctx[self._block_size_bytes:2*self._block_size_bytes], ctx[2*self._block_size_bytes:]
         # unpadder = padding.PKCS7(ciphers.algorithms.AES.block_size).unpadder()
-        # decryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
-        #                            ciphers.modes.GCM(iv),
-        #                            self._backend).decryptor()
+        decryptor = ciphers.Cipher(ciphers.algorithms.AES(self._key),
+                                   ciphers.modes.GCM(iv, tag),
+                                   self._backend).decryptor()
         # msg = decryptor.update(ctx) + decryptor.finalize()
         try:
-            # msg = unpadder.update(padded_msg) + unpadder.finalize()
+            msg = decryptor.update(ctx) + decryptor.finalize()
             return msg  # Successful decryption
         except ValueError:
             return False  # Error!!
